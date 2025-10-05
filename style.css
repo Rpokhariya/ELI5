@@ -51,4 +51,45 @@
   margin-top: 15px;
   font-size: 14px;
   line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* New styles for the difficulty slider */
+
+/* This is the new header container that holds the title and buttons */
+.eli5-header {
+  display: flex; /* Aligns items horizontally */
+  justify-content: space-between; /* Pushes title and buttons to opposite ends */
+  align-items: center; /* Vertically centers them */
+  margin-bottom: 8px;
+}
+
+/* Container for just the buttons */
+.eli5-difficulty-controls {
+  display: flex;
+  gap: 5px; /* Adds a small space between buttons */
+}
+
+/* Styling for each individual button */
+.eli5-difficulty-btn {
+  background-color: transparent;
+  border: 1px solid #007bff;
+  color: #007bff;
+  padding: 4px 8px;
+  border-radius: 15px; /* Creates the pill shape */
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease; /* Smooth transition for hover effects */
+}
+
+/* Style for the button you are hovering over */
+.eli5-difficulty-btn:hover {
+  background-color: #e9f2ff;
+}
+
+/* Style for the currently active/selected button */
+.eli5-difficulty-btn.active {
+  background-color: #007bff;
+  color: white;
 }

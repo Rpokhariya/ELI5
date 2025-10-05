@@ -1,0 +1,54 @@
+/* Styling for the small "Explain" button that appears after highlighting text */
+#eli5-button {
+  position: absolute; /* Allows positioning relative to the document */
+  z-index: 9999;      /* Ensures the button appears above most page elements */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  font-family: sans-serif;
+  font-size: 12px;
+}
+
+/* Styling for the main overlay panel that shows the explanation */
+#eli5-overlay {
+  position: fixed; /* Positions the overlay relative to the viewport (stays in the middle of the screen) */
+  z-index: 10000;  /* Sits on top of everything, including the button */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centers the element perfectly */
+  width: 400px;
+  max-width: 90%;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 20px;
+  font-family: sans-serif;
+  color: #333;
+}
+
+/* Styling for the "Explaining:" title inside the overlay */
+.eli5-content strong {
+  font-size: 16px;
+  color: #007bff;
+}
+
+/* Styling for the paragraph showing the highlighted text */
+.eli5-content p {
+  font-style: italic;
+  color: #555;
+  margin-top: 5px;
+  max-height: 100px; /* Prevents long selections from breaking the layout */
+  overflow-y: auto;  /* Adds a scrollbar if the text is too long */
+}
+
+/* Styling for the area where the final AI explanation will go */
+.eli5-explanation {
+  margin-top: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+}

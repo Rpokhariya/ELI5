@@ -4,38 +4,64 @@ let overlay = null;
 
 /**
  * Creates and displays the explanation overlay on the page.
+ * It now fetches the explanation from the backend API.
  * @param {string} text - The text that was selected by the user.
  */
-function showOverlay(text) {
-  // For debugging: confirms that this function was called.
+async function showOverlay(text) {
   console.log("Attempting to show overlay...");
 
-  // If an old overlay exists, remove it before creating a new one.
   if (overlay) {
     overlay.remove();
   }
 
-  // Create the main container div for the overlay.
   overlay = document.createElement('div');
   overlay.id = 'eli5-overlay';
-
-  // Set the inner HTML of the overlay, including the selected text.
   overlay.innerHTML = `
     <div class="eli5-content">
       <strong>Explaining:</strong>
       <p>${text}</p>
       <hr>
       <div class="eli5-explanation">
-        <em>This is where the AI explanation will go.</em>
+        <em>Loading...</em>
       </div>
     </div>
   `;
-  
-  // Add the newly created overlay to the page's body.
   document.body.appendChild(overlay);
 
-  // Use a setTimeout to prevent the click that opened the overlay from immediately closing it.
-  // This pushes the attachment of the listener to the next browser task.
+  try {
+    // Call our local FastAPI backend
+    const response = await fetch("http://127.0.0.1:8000/explain", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: text,
+        difficulty: "like i'm 5" // We'll make this dynamic later
+      }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Find the explanation div and update it with the response
+    const explanationDiv = overlay.querySelector(".eli5-explanation");
+    if (explanationDiv) {
+      explanationDiv.innerText = data.explanation;
+    }
+
+  } catch (error) {
+    // If something goes wrong, show an error message
+    const explanationDiv = overlay.querySelector(".eli5-explanation");
+    if (explanationDiv) {
+      explanationDiv.innerText = "Sorry, something went wrong. Please try again.";
+    }
+    console.error("Error fetching explanation:", error);
+  }
+
   setTimeout(() => {
     document.addEventListener('click', closeOverlayListener, { once: true });
   }, 0);

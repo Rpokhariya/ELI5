@@ -1,8 +1,11 @@
 {
   "manifest_version": 3,
   "name": "ELI5 - Explain Like I'm 5",
-  "version": "0.1.0",
-  "description": "A simple tool to explain complex text.",
+  "version": "0.3.0",
+  "description": "A tool to explain complex text and simplify pages.",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
   "permissions": [
     "storage",
     "activeTab"
@@ -12,9 +15,19 @@
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["marked.min.js", "content.js"],
-      "css": ["style.css"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "marked.min.js",
+        "content.js"
+      ],
+      "css": [
+        "style.css"
+      ]
     }
-  ]
+  ],
+  "action": {
+    "default_title": "Simplify this Page"
+  }
 }

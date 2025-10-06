@@ -104,6 +104,43 @@ CONTEXT FROM WEBPAGE: "{request.context}"
         return {"explanation": "Sorry, there was an error contacting the AI."}
 
 
+# Add this new Pydantic model for the simplify request
+class SimplifyRequest(BaseModel):
+    page_content: str
+    mode: str # Will be 'eli5' or 'adult'
+
+# Add this new endpoint to handle the simplification
+@app.post("/simplify")
+async def simplify_page(request: SimplifyRequest):
+    prompt = ""
+    if request.mode == 'eli5':
+        prompt = f"""
+        You are an expert at explaining complex topics to a 5-year-old child.
+        Read the following article content and explain the main ideas and what the article is about in very simple terms.
+        Use short sentences, simple words, and fun analogies.
+
+        ARTICLE CONTENT:
+        '''{request.page_content}'''
+        """
+    else: # Default to 'adult' mode
+        prompt = f"""
+        You are an expert communicator. Read the following article content and explain its key points, main arguments, and overall conclusion.
+        Your explanation should be clear, concise, and easy for an adult to understand, even if they are not an expert on the topic.
+        Use Markdown for formatting, such as headings and bullet points.
+
+        ARTICLE CONTENT:
+        '''{request.page_content}'''
+        """
+
+    try:
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(prompt)
+        return {"simplification": response.text}
+    except Exception as e:
+        print(f"An error occurred during simplification: {e}")
+        return {"simplification": "Sorry, there was an error simplifying the page."}
+    
+
 @app.get("/")
 def read_root():
     return {"status": "ELI5 Backend is running"}

@@ -167,3 +167,124 @@ document.addEventListener('mouseup', (event) => {
     document.body.appendChild(explainButton);
   }
 });
+
+
+
+// --- NEW: LOGIC FOR FULL-PAGE SIMPLIFICATION ---
+
+let simplifiedPageText = null; // Store page content when sidebar is open
+
+/**
+ * Extracts the main readable content from the current webpage.
+ */
+function extractMainContent() {
+  const main = document.querySelector('main') || document.querySelector('article');
+  if (main) return main.innerText;
+  let bestElement = document.body;
+  let maxTextLength = 0;
+  document.querySelectorAll('div, section').forEach(el => {
+    if (el.innerText.length > maxTextLength) {
+      maxTextLength = el.innerText.length;
+      bestElement = el;
+    }
+  });
+  return bestElement.innerText;
+}
+
+/**
+ * Fetches the simplified content from the backend.
+ * @param {string} pageText - The full text of the page.
+ * @param {string} mode - The simplification mode ('eli5' or 'adult').
+ */
+async function fetchSimplification(pageText, mode) {
+  const contentDiv = document.getElementById('sidebar-content');
+  if (!contentDiv) return;
+
+  contentDiv.innerHTML = `<p>Reading the page and preparing your explanation...</p>`;
+  contentDiv.classList.add('loading');
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/simplify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page_content: pageText, mode: mode }),
+    });
+    const data = await response.json();
+    contentDiv.innerHTML = marked.parse(data.simplification);
+    contentDiv.classList.remove('loading');
+
+    // Update active button style
+    document.querySelector('.sidebar-mode-btn.active').classList.remove('active');
+    document.getElementById(`sidebar-mode-${mode}`).classList.add('active');
+
+  } catch (error) {
+    contentDiv.innerHTML = "Sorry, there was an error simplifying this page.";
+    console.error("Simplification error:", error);
+  }
+}
+
+/**
+ * Creates and shows the sidebar UI, now with difficulty controls inside.
+ */
+function createSimplificationSidebar() {
+  const existingSidebar = document.getElementById('eli5-sidebar');
+  if (existingSidebar) {
+    existingSidebar.remove();
+    return; // Toggle off if it's already open
+  }
+
+  simplifiedPageText = extractMainContent(); // Extract and store content
+
+  const sidebar = document.createElement('div');
+  sidebar.id = 'eli5-sidebar';
+  sidebar.innerHTML = `
+    <div class="sidebar-header">
+      <h3>Simplifying Page</h3>
+      <div class="sidebar-mode-controls">
+        <button id="sidebar-mode-eli5" class="sidebar-mode-btn active">ELI5</button>
+        <button id="sidebar-mode-adult" class="sidebar-mode-btn">Deeper Dive</button>
+      </div>
+      <button id="sidebar-close-btn">&times;</button>
+    </div>
+    <p class="sidebar-subtitle">You can also select text on the page for its quick explanation.</p>
+    <hr class="sidebar-divider">
+    <div id="sidebar-content"></div>
+  `;
+  document.body.appendChild(sidebar);
+
+  // Add event listeners for the new controls
+  document.getElementById('sidebar-close-btn').addEventListener('click', () => sidebar.remove());
+
+  document.getElementById('sidebar-mode-eli5').addEventListener('click', () => {
+    fetchSimplification(simplifiedPageText, 'eli5');
+  });
+
+  document.getElementById('sidebar-mode-adult').addEventListener('click', () => {
+    fetchSimplification(simplifiedPageText, 'adult');
+  });
+
+  // Automatically fetch the default ELI5 summary on open
+  fetchSimplification(simplifiedPageText, 'eli5');
+}
+
+/**
+ * Creates the floating action button and adds it to the page.
+ */
+function createFloatingActionButton() {
+    const fab = document.createElement('button');
+    fab.id = 'eli5-fab';
+    fab.innerHTML = '✨'; // You can use an emoji or an SVG icon
+    fab.title = 'Simplify this Page';
+
+    fab.addEventListener('click', createSimplificationSidebar);
+
+    document.body.appendChild(fab);
+}
+
+// --- The 'mouseup' listener for text selection remains unchanged ---
+document.addEventListener('mouseup', (event) => {
+  // ... same as before
+});
+
+// --- INITIATE: Create the floating button when the page loads ---
+createFloatingActionButton();

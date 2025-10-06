@@ -1,7 +1,7 @@
-/* Styling for the small "Explain" button that appears after highlighting text */
+/* Styling for the small "Explain" button */
 #eli5-button {
-  position: absolute; /* Allows positioning relative to the document */
-  z-index: 9999;      /* Ensures the button appears above most page elements */
+  position: absolute;
+  z-index: 9999;
   background-color: #007bff;
   color: white;
   border: none;
@@ -13,13 +13,13 @@
   font-size: 12px;
 }
 
-/* Styling for the main overlay panel that shows the explanation */
+/* Styling for the main overlay panel */
 #eli5-overlay {
-  position: fixed; /* Positions the overlay relative to the viewport (stays in the middle of the screen) */
-  z-index: 10000;  /* Sits on top of everything, including the button */
+  position: fixed;
+  z-index: 10000;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* Centers the element perfectly */
+  transform: translate(-50%, -50%);
   width: 400px;
   max-width: 90%;
   background-color: white;
@@ -29,76 +29,75 @@
   padding: 20px;
   font-family: sans-serif;
   color: #333;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Styling for the "Explaining:" title inside the overlay */
-.eli5-content strong {
-  font-size: 16px;
-  color: #007bff;
-}
-
-/* Styling for the paragraph showing the highlighted text */
-.eli5-content p {
+/* --- SCROLLBAR 1: For the selected text --- */
+#eli5-overlay #eli5-original-text {
+  max-height: 80px; /* Adjust height as needed */
+  overflow-y: auto;
   font-style: italic;
   color: #555;
   margin-top: 5px;
-  max-height: 100px; /* Prevents long selections from breaking the layout */
-  overflow-y: auto;  /* Adds a scrollbar if the text is too long */
+  padding-right: 5px; /* Prevent scrollbar from overlapping text */
 }
 
-/* Styling for the area where the final AI explanation will go */
-.eli5-explanation {
+/* --- SCROLLBAR 2: For the entire explanation area --- */
+#eli5-overlay .eli5-explanation {
+  max-height: 220px; /* Adjust height as needed */
+  overflow-y: auto;
   margin-top: 15px;
   font-size: 14px;
   line-height: 1.6;
-  max-height: 200px;
-  overflow-y: auto;
+  padding-right: 5px; /* Prevent scrollbar from overlapping text */
 }
 
-/* New styles for the difficulty slider */
-
-/* This is the new header container that holds the title and buttons */
-.eli5-header {
-  display: flex; /* Aligns items horizontally */
-  justify-content: space-between; /* Pushes title and buttons to opposite ends */
-  align-items: center; /* Vertically centers them */
-  margin-bottom: 8px;
-}
-
-/* Container for just the buttons */
-.eli5-difficulty-controls {
+/* Header styling */
+#eli5-overlay .eli5-header {
   display: flex;
-  gap: 5px; /* Adds a small space between buttons */
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
-/* Styling for each individual button */
-.eli5-difficulty-btn {
+.eli5-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#eli5-overlay .eli5-difficulty-controls {
+  display: flex;
+  gap: 5px;
+}
+
+#eli5-overlay .eli5-difficulty-btn {
   background-color: transparent;
   border: 1px solid #007bff;
   color: #007bff;
   padding: 4px 8px;
-  border-radius: 15px; /* Creates the pill shape */
+  border-radius: 15px;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s ease; /* Smooth transition for hover effects */
+  transition: all 0.2s ease;
 }
 
-/* Style for the button you are hovering over */
-.eli5-difficulty-btn:hover {
+#eli5-overlay .eli5-difficulty-btn:hover {
   background-color: #e9f2ff;
 }
 
-/* Style for the currently active/selected button */
-.eli5-difficulty-btn.active {
+#eli5-overlay .eli5-difficulty-btn.active {
   background-color: #007bff;
   color: white;
 }
 
-/* Styling for the new close button */
-#eli5-close-btn {
+/* Close Button styling */
+#eli5-overlay #eli5-close-btn {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 10px;
+  right: 15px;
   background: transparent;
   border: none;
   font-size: 24px;
@@ -109,6 +108,158 @@
   transition: color 0.2s ease;
 }
 
-#eli5-close-btn:hover {
+#eli5-overlay #eli5-close-btn:hover {
   color: #333;
+}
+
+/* Footer styling */
+.eli5-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#eli5-language-select {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 12px;
+}
+
+#eli5-translate-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#eli5-translate-btn:hover {
+  background-color: #e0e0e0;
+}
+
+/* Sidebar styles remain unchanged */
+#eli5-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 350px;
+  height: 100%;
+  background-color: white;
+  box-shadow: -2px 0 15px rgba(0,0,0,0.15);
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  font-family: sans-serif;
+}
+
+#eli5-sidebar .sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  /* border-bottom: 1px solid #eee; */
+}
+
+#eli5-sidebar .sidebar-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+#eli5-sidebar #sidebar-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #aaa;
+}
+#eli5-sidebar #sidebar-close-btn:hover {
+  color: #333;
+}
+
+#eli5-sidebar #sidebar-content {
+  padding: 15px;
+  overflow-y: auto;
+  line-height: 1.6;
+  color: #333;
+}
+
+#eli5-sidebar #sidebar-content.loading {
+  text-align: center;
+  color: #888;
+  padding-top: 50px;
+}
+
+
+/* --- FLOATING ACTION BUTTON (FAB) STYLES --- */
+#eli5-fab {
+  position: fixed;
+  top: 50px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9998;
+  transition: transform 0.2s ease;
+}
+
+#eli5-fab:hover {
+  transform: scale(1.1);
+}
+
+/* --- SIDEBAR MODE CONTROLS --- */
+.sidebar-mode-controls {
+  display: flex;
+  background-color: #f0f0f0;
+  border-radius: 20px;
+  padding: 3px;
+}
+
+.sidebar-mode-btn {
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #555;
+  font-weight: 500;
+}
+
+.sidebar-mode-btn.active {
+  background-color: white;
+  color: #007bff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.sidebar-subtitle {
+  font-size: 10px;
+  color: #007bff;
+  margin: 2px 0 0 0; /* Removes extra spacing */
+  font-weight: 500;
+  padding: 0 15px;
+}
+
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 0;
 }

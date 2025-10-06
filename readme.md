@@ -5,35 +5,32 @@ Whether you select a specific piece of text or want the entire page explained �
 
 ---
 
-## Features
+## ✨ Features
 
-- **Text Selection Explanation**
-- Select any text on a webpage to get instant explanations
-- Choose between **three modes** of understanding:
+- 🖱️ **Text Selection Explanation**
+  - Select any text on a webpage to get instant explanations  
+  - Choose between **three modes** of understanding:
+    - 🧒 **ELI5:** Simplest explanation (Explain Like I’m 5)  
+    - 🎓 **High School:** Balanced level, moderate technical depth  
+    - 🧠 **Expert:** In-depth and detailed explanation  
 
-  - **ELI5:** Simplest explanation (Explain Like I’m 5)
-  - **High School:** Balanced level, moderate technical depth
-  - **Expert:** In-depth and detailed explanation
+- 📄 **Full-Page Explanation**
+  - Use the floating **FAB (floating action button)** to explain the **entire webpage** in one click  
+  - Choose between **two difficulty levels**:
+    - ✨ **ELI5 Mode** — Simplified overview  
+    - 🌊 **Dive Mode** — Deeper, more analytical explanation  
 
-- **Full-Page Explanation**
-- Use the floating **FAB (floating action button)** to explain the **entire webpage** in one click
-- Choose between **two difficulty levels**:
-
-  - **ELI5 Mode** — Simplified overview
-  - **Dive Mode** — Deeper, more analytical explanation
-
-- **Quick Access**
-
+- ⚡ **Quick Access**
   - Access directly via browser toolbar or the floating action button
 
-- **Universal Compatibility**
-
+- 🌐 **Universal Compatibility**
   - Works seamlessly across all websites
 
-- **Simple & Intuitive Interface**
+- 🎨 **Simple & Intuitive Interface**
   - Clean design focused on clarity and accessibility
 
 ---
+
 
 ## Technology Stack
 

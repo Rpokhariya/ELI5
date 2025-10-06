@@ -93,3 +93,22 @@
   background-color: #007bff;
   color: white;
 }
+
+/* Styling for the new close button */
+#eli5-close-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+#eli5-close-btn:hover {
+  color: #333;
+}

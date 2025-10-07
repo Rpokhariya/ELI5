@@ -17,7 +17,7 @@ async function fetchExplanation(text, difficulty, context) {
   }
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/explain", {
+    const response = await fetch("https://eli5-backend-qd9n.onrender.com/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       // The body now includes the context field
@@ -204,7 +204,7 @@ async function fetchSimplification(pageText, mode) {
   contentDiv.classList.add('loading');
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/simplify", {
+    const response = await fetch("https://eli5-backend-qd9n.onrender.com/simplify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ page_content: pageText, mode: mode }),

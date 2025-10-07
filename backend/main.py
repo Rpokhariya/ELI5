@@ -33,7 +33,7 @@ async def explain_text(request: ExplainRequest):
 
     prompt = ""
     
-    # --- CHANGE: Logic is now split based on whether context is available ---
+    # --- Logic is now based on whether context is available ---
     if request.context:
         # --- Prompts for when CONTEXT IS PROVIDED ---
         # These prompts instruct the AI to generate a two-part response.
@@ -107,9 +107,9 @@ CONTEXT FROM WEBPAGE: "{request.context}"
 # Add this new Pydantic model for the simplify request
 class SimplifyRequest(BaseModel):
     page_content: str
-    mode: str # Will be 'eli5' or 'adult'
+    mode: str # Will be 'eli5' or 'Deeper Dive'
 
-# Add this new endpoint to handle the simplification
+# endpoint to handle the simplification
 @app.post("/simplify")
 async def simplify_page(request: SimplifyRequest):
     prompt = ""

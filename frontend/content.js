@@ -10,6 +10,8 @@ let currentContext = ''; // Variable to store the surrounding context
  * @param {string} difficulty - The difficulty level.
  * @param {string | null} context - The surrounding text from the page.
  */
+
+
 async function fetchExplanation(text, difficulty, context) {
   const explanationDiv = overlay.querySelector(".eli5-explanation");
   if (explanationDiv) {
@@ -20,7 +22,7 @@ async function fetchExplanation(text, difficulty, context) {
     const response = await fetch("https://eli5-backend-qd9n.onrender.com/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // The body now includes the context field
+      // The body includes the context field
       body: JSON.stringify({ text, difficulty, context }),
     });
 
@@ -59,7 +61,6 @@ function showOverlay(text, context) {
   overlay = document.createElement('div');
   overlay.id = 'eli5-overlay';
   
-  // The innerHTML now includes a dedicated close button
   overlay.innerHTML = `
     <button id="eli5-close-btn">&times;</button>
     <div class="eli5-header">
@@ -90,12 +91,12 @@ function showOverlay(text, context) {
     });
   });
 
-  // --- NEW: Reusable functions for closing the overlay ---
+  // --- functions for closing the overlay ---
   function closeOverlay() {
     if (overlay) {
       overlay.remove();
       overlay = null;
-      // Important: Clean up the "click outside" listener
+      // Clean up the "click outside" listener
       document.removeEventListener('click', closeOverlayOnClickOutside);
     }
   }
@@ -106,7 +107,7 @@ function showOverlay(text, context) {
     }
   }
 
-  // Add click listener for the NEW close button
+  // Add click listener for the close button
   const closeButton = overlay.querySelector('#eli5-close-btn');
   closeButton.addEventListener('click', closeOverlay);
 
@@ -115,7 +116,7 @@ function showOverlay(text, context) {
     document.addEventListener('click', closeOverlayOnClickOutside);
   }, 0);
 
-  // Initial fetch when the overlay first opens, now with context
+  // Initial fetch when the overlay first opens with context
   fetchExplanation(currentSelectedText, "like i'm 5", currentContext);
 }
 
@@ -139,7 +140,7 @@ document.addEventListener('mouseup', (event) => {
     const rect = range.getBoundingClientRect();
     let contextText = null;
 
-    // --- NEW: Logic to capture the context from the parent element ---
+    // --- Logic to capture the context from the parent element ---
     const parentElement = range.commonAncestorContainer.parentElement;
     if (parentElement) {
         // We use innerText to get a clean text representation of the paragraph
@@ -170,7 +171,7 @@ document.addEventListener('mouseup', (event) => {
 
 
 
-// --- NEW: LOGIC FOR FULL-PAGE SIMPLIFICATION ---
+// --- LOGIC FOR FULL-PAGE SIMPLIFICATION ---
 
 let simplifiedPageText = null; // Store page content when sidebar is open
 
@@ -194,7 +195,7 @@ function extractMainContent() {
 /**
  * Fetches the simplified content from the backend.
  * @param {string} pageText - The full text of the page.
- * @param {string} mode - The simplification mode ('eli5' or 'adult').
+ * @param {string} mode - The simplification mode ('eli5' or 'Deeper Dive').
  */
 async function fetchSimplification(pageText, mode) {
   const contentDiv = document.getElementById('sidebar-content');
@@ -273,18 +274,13 @@ function createSimplificationSidebar() {
 function createFloatingActionButton() {
     const fab = document.createElement('button');
     fab.id = 'eli5-fab';
-    fab.innerHTML = '✨'; // You can use an emoji or an SVG icon
+    fab.innerHTML = '✨'; 
     fab.title = 'Simplify this Page';
 
     fab.addEventListener('click', createSimplificationSidebar);
 
     document.body.appendChild(fab);
 }
-
-// --- The 'mouseup' listener for text selection remains unchanged ---
-document.addEventListener('mouseup', (event) => {
-  // ... same as before
-});
 
 // --- INITIATE: Create the floating button when the page loads ---
 createFloatingActionButton();

@@ -1,6 +1,8 @@
 # ELI5 - Explain Like I'm 5 🧠
 
-A Chrome browser extension that simplifies complex text into easy-to-understand explanations using AI. It can be used to explain full webpages, giving you a summary of what the site is about, what it contains, and helping you navigate through its content. Whether you select a specific piece of text or want the entire page explained — ELI5 helps you grasp it at your preferred depth.
+A Chrome browser extension that simplifies complex text into easy-to-understand explanations using AI. <br>
+It can be used to explain full webpages, giving you a summary of what the site is about, what it contains, and helping you navigate through its content.<br>
+Whether you select a specific piece of text or want the entire page explained — ELI5 helps you grasp it at your preferred depth.<br>
 
 ---
 
@@ -29,16 +31,16 @@ A Chrome browser extension that simplifies complex text into easy-to-understand 
 
 ---
 
-## 🚀 Installation
+## Installation
 
 1. Open your Chrome browser and navigate to `chrome://extensions/`.
 2. Enable "Developer mode" with the toggle switch in the top-right corner.
-3. Click "Load unpacked" and select the `extension` folder from the project files.
-4. The ELI5 icon will now be available in your browser toolbar. ✅
+3. Click "Load unpacked" and select the `frontend` folder from the project files.
+4. The ELI5 icon will now be available in your browser toolbar.
 
 ---
 
-## 📖 How to Use
+## How to Use
 
 ### For a Full Page Explanation:
 

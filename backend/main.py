@@ -7,6 +7,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- Simple in-memory cache ---
+# This dictionary will store results to avoid redundant API calls.
+# For a production environment, a more robust solution like Redis is recommended.
+api_cache = {}
+
+
 # Load the API key from an environment variable.
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
@@ -29,8 +35,15 @@ class ExplainRequest(BaseModel):
 
 @app.post("/explain")
 async def explain_text(request: ExplainRequest):
-    print(f"Received text: '{request.text}' with context: '{request.context is not None}'")
+    # Create a unique key based on the request's content.
+    cache_key = f"explain::{request.difficulty}::{request.context}::{request.text}"
 
+    # Check if the generated key exists in our cache.
+    if cache_key in api_cache:
+        print(f"✅ Cache hit! Returning stored response for: '{request.text}'")
+        return {"explanation": api_cache[cache_key]}
+
+    print(f"⏳ Cache miss. Calling Google AI for: '{request.text}'")
     prompt = ""
     
     # --- Logic is now based on whether context is available ---
@@ -98,6 +111,10 @@ CONTEXT FROM WEBPAGE: "{request.context}"
         model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(prompt)
         ai_explanation = response.text
+
+        # --- Save the successful response to the cache ---
+        api_cache[cache_key] = ai_explanation
+
         return {"explanation": ai_explanation}
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -112,6 +129,14 @@ class SimplifyRequest(BaseModel):
 # endpoint to handle the simplification
 @app.post("/simplify")
 async def simplify_page(request: SimplifyRequest):
+    # --- Implement caching for the simplify endpoint as well ---
+    cache_key = f"simplify::{request.mode}::{request.page_content}"
+    
+    if cache_key in api_cache:
+        print(f"✅ Cache hit! Returning stored page simplification.")
+        return {"simplification": api_cache[cache_key]}
+
+    print(f"⏳ Cache miss. Calling Google AI for page simplification.")
     prompt = ""
     if request.mode == 'eli5':
         prompt = f"""
@@ -122,7 +147,7 @@ async def simplify_page(request: SimplifyRequest):
         ARTICLE CONTENT:
         '''{request.page_content}'''
         """
-    else: # Default to 'adult' mode
+    else: # Default to 'Deeper Dive' mode
         prompt = f"""
         You are an expert communicator. Read the following article content and explain its key points, main arguments, and overall conclusion.
         Your explanation should be clear, concise, and easy for an adult to understand, even if they are not an expert on the topic.
@@ -135,6 +160,10 @@ async def simplify_page(request: SimplifyRequest):
     try:
         model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(prompt)
+
+        # --- Save the result to the cache ---
+        api_cache[cache_key] = response.text
+
         return {"simplification": response.text}
     except Exception as e:
         print(f"An error occurred during simplification: {e}")

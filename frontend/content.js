@@ -1,3 +1,8 @@
+// --- Client-side cache ---
+// A Map to store responses from the backend during the user's session.
+// This provides an instantaneous UI response for repeated requests.
+const responseCache = new Map();
+
 // Global variables to hold references to our UI elements.
 let explainButton = null;
 let overlay = null;
@@ -5,15 +10,23 @@ let currentSelectedText = '';
 let currentContext = ''; // Variable to store the surrounding context
 
 /**
- * Fetches explanations from the backend, now including context.
+ * Fetches explanations from the backend, now with client-side caching.
  * @param {string} text - The text to explain.
  * @param {string} difficulty - The difficulty level.
  * @param {string | null} context - The surrounding text from the page.
  */
-
-
 async function fetchExplanation(text, difficulty, context) {
   const explanationDiv = overlay.querySelector(".eli5-explanation");
+
+  // --- Create a unique key and check the client-side cache first ---
+  const cacheKey = `explain::${difficulty}::${context}::${text}`;
+  if (responseCache.has(cacheKey)) {
+    console.log("Client cache hit for explanation!");
+    explanationDiv.innerHTML = marked.parse(responseCache.get(cacheKey));
+    return; // Use the cached response and skip the network request.
+  }
+
+  // If not in cache, proceed with the fetch request.
   if (explanationDiv) {
     explanationDiv.innerHTML = "<em>Loading...</em>";
   }
@@ -22,7 +35,6 @@ async function fetchExplanation(text, difficulty, context) {
     const response = await fetch("https://eli5-backend-qd9n.onrender.com/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // The body includes the context field
       body: JSON.stringify({ text, difficulty, context }),
     });
 
@@ -35,6 +47,9 @@ async function fetchExplanation(text, difficulty, context) {
     if (explanationDiv) {
       // Use the 'marked' library to parse Markdown from the response
       explanationDiv.innerHTML = marked.parse(data.explanation);
+
+      // --- Store the new response in the client-side cache ---
+      responseCache.set(cacheKey, data.explanation);
     }
 
   } catch (error) {
@@ -96,7 +111,6 @@ function showOverlay(text, context) {
     if (overlay) {
       overlay.remove();
       overlay = null;
-      // Clean up the "click outside" listener
       document.removeEventListener('click', closeOverlayOnClickOutside);
     }
   }
@@ -116,18 +130,16 @@ function showOverlay(text, context) {
     document.addEventListener('click', closeOverlayOnClickOutside);
   }, 0);
 
-  // Initial fetch when the overlay first opens with context
+  // Initial fetch when the overlay first opens
   fetchExplanation(currentSelectedText, "like i'm 5", currentContext);
 }
 
 // Main event listener for text selection
 document.addEventListener('mouseup', (event) => {
-  // Ignore clicks inside our own UI elements
   if ((overlay && overlay.contains(event.target)) || (explainButton && explainButton.contains(event.target))) {
     return;
   }
 
-  // Remove the previous "Explain" button if it exists
   if (explainButton) {
     explainButton.remove();
     explainButton = null;
@@ -140,14 +152,11 @@ document.addEventListener('mouseup', (event) => {
     const rect = range.getBoundingClientRect();
     let contextText = null;
 
-    // --- Logic to capture the context from the parent element ---
     const parentElement = range.commonAncestorContainer.parentElement;
     if (parentElement) {
-        // We use innerText to get a clean text representation of the paragraph
         contextText = parentElement.innerText;
     }
 
-    // Create and position the "Explain" button
     explainButton = document.createElement('button');
     explainButton.id = 'eli5-button';
     explainButton.innerText = 'Explain ✨';
@@ -156,7 +165,6 @@ document.addEventListener('mouseup', (event) => {
     explainButton.style.top = `${window.scrollY + rect.bottom + 5}px`;
     explainButton.style.left = `${window.scrollX + rect.left}px`;
 
-    // When the button is clicked, show the overlay with text AND context
     explainButton.addEventListener('click', () => {
       showOverlay(selectedText, contextText);
       if (explainButton) {
@@ -168,8 +176,6 @@ document.addEventListener('mouseup', (event) => {
     document.body.appendChild(explainButton);
   }
 });
-
-
 
 // --- LOGIC FOR FULL-PAGE SIMPLIFICATION ---
 
@@ -193,13 +199,22 @@ function extractMainContent() {
 }
 
 /**
- * Fetches the simplified content from the backend.
+ * Fetches the simplified content from the backend, now with client-side caching.
  * @param {string} pageText - The full text of the page.
  * @param {string} mode - The simplification mode ('eli5' or 'Deeper Dive').
  */
 async function fetchSimplification(pageText, mode) {
   const contentDiv = document.getElementById('sidebar-content');
   if (!contentDiv) return;
+
+  // --- Create a unique key and check the client-side cache first ---
+  const cacheKey = `simplify::${mode}::${pageText}`;
+  if (responseCache.has(cacheKey)) {
+    console.log("Client cache hit for simplification!");
+    contentDiv.innerHTML = marked.parse(responseCache.get(cacheKey));
+    contentDiv.classList.remove('loading');
+    return;
+  }
 
   contentDiv.innerHTML = `<p>Reading the page and preparing your explanation...</p>`;
   contentDiv.classList.add('loading');
@@ -214,6 +229,9 @@ async function fetchSimplification(pageText, mode) {
     contentDiv.innerHTML = marked.parse(data.simplification);
     contentDiv.classList.remove('loading');
 
+    // --- Store the new response in the client-side cache ---
+    responseCache.set(cacheKey, data.simplification);
+
     // Update active button style
     document.querySelector('.sidebar-mode-btn.active').classList.remove('active');
     document.getElementById(`sidebar-mode-${mode}`).classList.add('active');
@@ -225,16 +243,18 @@ async function fetchSimplification(pageText, mode) {
 }
 
 /**
- * Creates and shows the sidebar UI, now with difficulty controls inside.
+ * Creates and shows the sidebar UI.
  */
 function createSimplificationSidebar() {
   const existingSidebar = document.getElementById('eli5-sidebar');
   if (existingSidebar) {
     existingSidebar.remove();
-    return; // Toggle off if it's already open
+    return;
   }
 
-  simplifiedPageText = extractMainContent(); // Extract and store content
+  if (!simplifiedPageText) {
+      simplifiedPageText = extractMainContent();
+  }
 
   const sidebar = document.createElement('div');
   sidebar.id = 'eli5-sidebar';
@@ -253,7 +273,6 @@ function createSimplificationSidebar() {
   `;
   document.body.appendChild(sidebar);
 
-  // Add event listeners for the new controls
   document.getElementById('sidebar-close-btn').addEventListener('click', () => sidebar.remove());
 
   document.getElementById('sidebar-mode-eli5').addEventListener('click', () => {

@@ -7,7 +7,6 @@
     "extension_pages": "script-src 'self'; object-src 'self';"
   },
   "permissions": [
-    "storage",
     "activeTab"
   ],
   "host_permissions": [
@@ -26,8 +25,5 @@
         "style.css"
       ]
     }
-  ],
-  "action": {
-    "default_title": "Simplify this Page"
-  }
+  ]
 }

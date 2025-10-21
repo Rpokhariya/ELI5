@@ -1,32 +1,24 @@
 // --- Client-side cache ---
-// A Map to store responses from the backend during the user's session.
-// This provides an instantaneous UI response for repeated requests.
 const responseCache = new Map();
 
-// Global variables to hold references to our UI elements.
+// Global variables
 let explainButton = null;
 let overlay = null;
 let currentSelectedText = '';
-let currentContext = ''; // Variable to store the surrounding context
+let currentContext = '';
+let simplifiedPageText = null;
 
-/**
- * Fetches explanations from the backend, now with client-side caching.
- * @param {string} text - The text to explain.
- * @param {string} difficulty - The difficulty level.
- * @param {string | null} context - The surrounding text from the page.
- */
+//  Fetches explanations from the backend, with client-side caching.
 async function fetchExplanation(text, difficulty, context) {
   const explanationDiv = overlay.querySelector(".eli5-explanation");
 
-  // --- Create a unique key and check the client-side cache first ---
   const cacheKey = `explain::${difficulty}::${context}::${text}`;
   if (responseCache.has(cacheKey)) {
     console.log("Client cache hit for explanation!");
     explanationDiv.innerHTML = marked.parse(responseCache.get(cacheKey));
-    return; // Use the cached response and skip the network request.
+    return;
   }
 
-  // If not in cache, proceed with the fetch request.
   if (explanationDiv) {
     explanationDiv.innerHTML = "<em>Loading...</em>";
   }
@@ -45,10 +37,8 @@ async function fetchExplanation(text, difficulty, context) {
     const data = await response.json();
     
     if (explanationDiv) {
-      // Use the 'marked' library to parse Markdown from the response
-      explanationDiv.innerHTML = marked.parse(data.explanation);
-
-      // --- Store the new response in the client-side cache ---
+      const explanationHtml = marked.parse(data.explanation);
+      explanationDiv.innerHTML = explanationHtml;
       responseCache.set(cacheKey, data.explanation);
     }
 
@@ -60,11 +50,8 @@ async function fetchExplanation(text, difficulty, context) {
   }
 }
 
-/**
- * Creates and displays the main overlay, now accepting context.
- * @param {string} text - The text that was selected.
- * @param {string | null} context - The surrounding paragraph text.
- */
+
+//  Creates and displays the main overlay.
 function showOverlay(text, context) {
   currentSelectedText = text;
   currentContext = context;
@@ -76,8 +63,9 @@ function showOverlay(text, context) {
   overlay = document.createElement('div');
   overlay.id = 'eli5-overlay';
   
+  // Create structure, but leave text <p> empty for safety
   overlay.innerHTML = `
-    <button id="eli5-close-btn">&times;</button>
+    <button id="eli5-close-btn" class="eli5-close-btn">&times;</button>
     <div class="eli5-header">
       <strong>Explaining:</strong>
       <div class="eli5-difficulty-controls">
@@ -86,24 +74,29 @@ function showOverlay(text, context) {
         <button class="eli5-difficulty-btn" data-difficulty="expert">Expert</button>
       </div>
     </div>
-    <p>${text}</p>
+    <p class="eli5-original-text"></p>
     <hr>
     <div class="eli5-explanation"></div>
   `;
+
+  // ---  Use .textContent to safely insert user-selected text ---
+  overlay.querySelector('.eli5-original-text').textContent = text;
   
   document.body.appendChild(overlay);
 
-  // Add click listeners to the difficulty buttons
-  const difficultyButtons = overlay.querySelectorAll('.eli5-difficulty-btn');
-  difficultyButtons.forEach(button => {
-    button.addEventListener('click', (event) => {
-      difficultyButtons.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
+  // --- Use event delegation for difficulty buttons ---
+  const difficultyControls = overlay.querySelector('.eli5-difficulty-controls');
+  difficultyControls.addEventListener('click', (event) => {
+    const button = event.target.closest('.eli5-difficulty-btn');
+    if (!button) return;
+
+    // Remove 'active' from all siblings
+    difficultyControls.querySelectorAll('.eli5-difficulty-btn').forEach(btn => btn.classList.remove('active'));
+    // Add 'active' to the clicked button
+    button.classList.add('active');
       
-      const newDifficulty = event.target.dataset.difficulty;
-      // Re-fetch with the new difficulty, passing the stored context
-      fetchExplanation(currentSelectedText, newDifficulty, currentContext);
-    });
+    const newDifficulty = button.dataset.difficulty;
+    fetchExplanation(currentSelectedText, newDifficulty, currentContext);
   });
 
   // --- functions for closing the overlay ---
@@ -121,20 +114,18 @@ function showOverlay(text, context) {
     }
   }
 
-  // Add click listener for the close button
-  const closeButton = overlay.querySelector('#eli5-close-btn');
-  closeButton.addEventListener('click', closeOverlay);
+  overlay.querySelector('#eli5-close-btn').addEventListener('click', closeOverlay);
 
   // Add the listener for clicking outside the overlay
   setTimeout(() => {
     document.addEventListener('click', closeOverlayOnClickOutside);
   }, 0);
 
-  // Initial fetch when the overlay first opens
+  // Initial fetch
   fetchExplanation(currentSelectedText, "like i'm 5", currentContext);
 }
 
-// Main event listener for text selection
+//  Main event listener for text selection
 document.addEventListener('mouseup', (event) => {
   if ((overlay && overlay.contains(event.target)) || (explainButton && explainButton.contains(event.target))) {
     return;
@@ -179,17 +170,23 @@ document.addEventListener('mouseup', (event) => {
 
 // --- LOGIC FOR FULL-PAGE SIMPLIFICATION ---
 
-let simplifiedPageText = null; // Store page content when sidebar is open
-
-/**
- * Extracts the main readable content from the current webpage.
- */
+//  Extracts the main readable content from the current webpage.
 function extractMainContent() {
   const main = document.querySelector('main') || document.querySelector('article');
   if (main) return main.innerText;
+  
   let bestElement = document.body;
   let maxTextLength = 0;
   document.querySelectorAll('div, section').forEach(el => {
+    // A simple filter to avoid navs/footers
+    const role = el.getAttribute('role');
+    const id = el.id.toLowerCase();
+    const elClass = el.className.toLowerCase();
+    
+    if (role === 'navigation' || role === 'contentinfo' || id.includes('nav') || id.includes('footer') || elClass.includes('nav') || elClass.includes('footer')) {
+      return;
+    }
+
     if (el.innerText.length > maxTextLength) {
       maxTextLength = el.innerText.length;
       bestElement = el;
@@ -198,16 +195,12 @@ function extractMainContent() {
   return bestElement.innerText;
 }
 
-/**
- * Fetches the simplified content from the backend, now with client-side caching.
- * @param {string} pageText - The full text of the page.
- * @param {string} mode - The simplification mode ('eli5' or 'Deeper Dive').
- */
+
+//  Fetches the simplified content from the backend, with client-side caching.
 async function fetchSimplification(pageText, mode) {
   const contentDiv = document.getElementById('sidebar-content');
   if (!contentDiv) return;
 
-  // --- Create a unique key and check the client-side cache first ---
   const cacheKey = `simplify::${mode}::${pageText}`;
   if (responseCache.has(cacheKey)) {
     console.log("Client cache hit for simplification!");
@@ -226,10 +219,10 @@ async function fetchSimplification(pageText, mode) {
       body: JSON.stringify({ page_content: pageText, mode: mode }),
     });
     const data = await response.json();
-    contentDiv.innerHTML = marked.parse(data.simplification);
+    const simplificationHtml = marked.parse(data.simplification);
+    contentDiv.innerHTML = simplificationHtml;
     contentDiv.classList.remove('loading');
 
-    // --- Store the new response in the client-side cache ---
     responseCache.set(cacheKey, data.simplification);
 
     // Update active button style
@@ -242,13 +235,12 @@ async function fetchSimplification(pageText, mode) {
   }
 }
 
-/**
- * Creates and shows the sidebar UI.
- */
+//  Creates and shows the sidebar UI.
 function createSimplificationSidebar() {
   const existingSidebar = document.getElementById('eli5-sidebar');
   if (existingSidebar) {
     existingSidebar.remove();
+    simplifiedPageText = null; // Clear cache when closing
     return;
   }
 
@@ -262,34 +254,39 @@ function createSimplificationSidebar() {
     <div class="sidebar-header">
       <h3>Simplifying Page</h3>
       <div class="sidebar-mode-controls">
-        <button id="sidebar-mode-eli5" class="sidebar-mode-btn active">ELI5</button>
-        <button id="sidebar-mode-adult" class="sidebar-mode-btn">Deeper Dive</button>
+        <button id="sidebar-mode-eli5" class="sidebar-mode-btn active" data-mode="eli5">ELI5</button>
+        <button id="sidebar-mode-adult" class="sidebar-mode-btn" data-mode="adult">Deeper Dive</button>
       </div>
-      <button id="sidebar-close-btn">&times;</button>
+      <button id="sidebar-close-btn" class="eli5-close-btn">&times;</button>
     </div>
-    <p class="sidebar-subtitle">You can also select text on the page for its quick explanation.</p>
+    <p class="sidebar-subtitle">You can also select text on the page for a quick explanation.</p>
     <hr class="sidebar-divider">
     <div id="sidebar-content"></div>
   `;
   document.body.appendChild(sidebar);
 
-  document.getElementById('sidebar-close-btn').addEventListener('click', () => sidebar.remove());
-
-  document.getElementById('sidebar-mode-eli5').addEventListener('click', () => {
-    fetchSimplification(simplifiedPageText, 'eli5');
+  document.getElementById('sidebar-close-btn').addEventListener('click', () => {
+    sidebar.remove();
+    simplifiedPageText = null; // Clear cache when closing
   });
 
-  document.getElementById('sidebar-mode-adult').addEventListener('click', () => {
-    fetchSimplification(simplifiedPageText, 'adult');
+  // --- SIMPLICITY: Use event delegation for mode buttons ---
+  const modeControls = sidebar.querySelector('.sidebar-mode-controls');
+  modeControls.addEventListener('click', (event) => {
+    const button = event.target.closest('.sidebar-mode-btn');
+    if (!button || button.classList.contains('active')) return;
+
+    modeControls.querySelectorAll('.sidebar-mode-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    
+    fetchSimplification(simplifiedPageText, button.dataset.mode);
   });
 
   // Automatically fetch the default ELI5 summary on open
   fetchSimplification(simplifiedPageText, 'eli5');
 }
 
-/**
- * Creates the floating action button and adds it to the page.
- */
+//  Creates the floating action button and adds it to the page.
 function createFloatingActionButton() {
     const fab = document.createElement('button');
     fab.id = 'eli5-fab';
